@@ -62,7 +62,7 @@ namespace mdglance
                     <meta charset=""utf-8"" />
                     <style>
                         body {{
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol', Helvetica, Arial, sans-serif;
                             font-size: 14px;
                             line-height: 1.6;
                             color: #333;
