@@ -307,10 +307,42 @@ namespace mdglance
 
         private void webBrowser1_Navigating(object sender, WebBrowserNavigatingEventArgs e)
         {
-            if (e.Url.ToString() != "about:blank")
+            string targetUrl = e.Url.ToString();
+            if (targetUrl.Equals("about:blank", StringComparison.OrdinalIgnoreCase))
             {
-                e.Cancel = true;
+                return;
             }
+
+            if (targetUrl.StartsWith("about:blank#", StringComparison.OrdinalIgnoreCase))
+            {
+                // Cancel the native navigation process immediately to prevent the "blank page" bug
+                e.Cancel = true;
+
+                try
+                {
+                    // Extract just the target ID string (e.g., "understanding-the-german-language")
+                    string targetId = targetUrl.Split('#')[1];
+
+                    if (webBrowser1.Document != null && !string.IsNullOrEmpty(targetId))
+                    {
+                        // Select the target element header from the DOM tree memory layout
+                        HtmlElement targetElement = webBrowser1.Document.GetElementById(targetId);
+
+                        if (targetElement != null)
+                        {
+                            // Invoke native DOM scrolling to jump seamlessly down to the element bounds
+                            targetElement.ScrollIntoView(true);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fail silently if parsing fails
+                }
+                return;
+            }
+
+            e.Cancel = true;
         }
 
 
@@ -364,7 +396,10 @@ namespace mdglance
                 // Quick pre-parser fix: finds blank lines trapped inside table rows and collapses them
                 string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
-                var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+                var pipeline = new MarkdownPipelineBuilder()
+                    .UseAdvancedExtensions()
+                    .UseAutoIdentifiers()
+                    .Build();
                 var htmlContent = Markdown.ToHtml(sanitizedMd, pipeline);
                 string completeHtml = $@"
                 <!DOCTYPE html>
@@ -424,9 +459,9 @@ namespace mdglance
                 //webBrowser1.DocumentText = completeHtml;
                 if (webBrowser1.Document == null)
                 {
-                    webBrowser1.Navigate("about:blank");
-                    // Force WinForms to pump messages and finalize browser initialization
-                    Application.DoEvents();
+                    //webBrowser1.Navigate("about:blank");
+                    //Application.DoEvents();
+                    webBrowser1.DocumentText = "<html><body></body></html>";
                 }
                 webBrowser1.Document.OpenNew(true);
                 webBrowser1.Document.Write(completeHtml);
