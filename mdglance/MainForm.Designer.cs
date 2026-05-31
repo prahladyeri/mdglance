@@ -34,7 +34,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(906, 370);
+            this.ClientSize = new System.Drawing.Size(610, 286);
             this.Name = "MainForm";
             this.Text = "MDGlance";
             this.ResumeLayout(false);
