@@ -12,9 +12,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("MDGlance")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Fast, minimal, and dependency-free Markdown viewing on Windows")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("MDGlance Open Source Project")]
 [assembly: AssemblyProduct("MDGlance")]
 [assembly: AssemblyCopyright("Copyright © Prahlad Yeri 2026")]
 [assembly: AssemblyTrademark("")]

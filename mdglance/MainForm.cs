@@ -3,6 +3,7 @@
  * 
  * @author Prahlad Yeri <prahladyeri@yahoo.com>
  * @license MIT
+ * @date 2026-05-31
  */
 using Markdig;
 using System;
@@ -351,6 +352,11 @@ namespace mdglance
         private void exitToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new About().ShowDialog();
         }
     }
 }
