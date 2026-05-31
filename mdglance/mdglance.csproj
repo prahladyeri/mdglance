@@ -11,7 +11,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-	<GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -33,6 +33,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Markdig, Version=0.44.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -90,16 +93,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  
-<ItemGroup>
+  <ItemGroup>
     <LicenseFiles Include="licenses\**\*.*" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Content Include="logo.ico" />
+  </ItemGroup>
   <Target Name="CopyLicensesToOutput" AfterTargets="Build">
-    <Copy 
-      SourceFiles="@(LicenseFiles)" 
-      DestinationFiles="@(LicenseFiles->'$(OutputPath)licenses\%(RecursiveDir)%(Filename)%(Extension)')" 
-      SkipUnchangedFiles="true" 
-    />
-  </Target>  
+    <Copy SourceFiles="@(LicenseFiles)" DestinationFiles="@(LicenseFiles->'$(OutputPath)licenses\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

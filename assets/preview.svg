@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" width="640" height="320">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1117" />
+      <stop offset="100%" stop-color="#161b22" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#58a6ff" />
+      <stop offset="100%" stop-color="#bc8cff" />
+    </linearGradient>
+  </defs>
+
+  <rect width="640" height="320" rx="8" fill="url(#bgGrad)" />
+  
+  <path d="M0 80 H640 M0 160 H640 M0 240 H640 M160 0 V320 M320 0 V320 M480 0 V320" 
+        stroke="#21262d" stroke-width="1" stroke-dasharray="4,4" />
+
+  <g transform="translate(60, 90)">
+    <path d="M40,20 H10 V120 H40" fill="none" stroke="#30363d" stroke-width="4" stroke-linecap="round" />
+    <path d="M100,20 H130 V120 H100" fill="none" stroke="#30363d" stroke-width="4" stroke-linecap="round" />
+    
+    <path d="M25,100 V40 L55,75 L85,40 V100" fill="none" stroke="url(#accentGrad)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <circle cx="55" cy="50" r="10" fill="#58a6ff" />
+    <circle cx="58" cy="47" r="3" fill="#ffffff" />
+  </g>
+
+  <g transform="translate(230, 155)">
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" 
+          font-size="46" font-weight="800" fill="#f0f6fc" letter-spacing="1">MDGlance</text>
+    <text font-family="Consolas, 'Liberation Mono', Menlo, monospace" 
+          font-size="16" font-weight="400" fill="#8b949e" x="5" y="35">Fast, native Markdown inspector</text>
+  </g>
+
+  <g transform="translate(235, 225)" font-family="Consolas, monospace" font-size="11" font-weight="bold">
+    <rect width="75" height="20" rx="4" fill="#21262d" stroke="#30363d"/>
+    <text x="8" y="14" fill="#58a6ff">.NET Core</text>
+    
+    <rect x="85" width="85" height="20" rx="4" fill="#21262d" stroke="#30363d"/>
+    <text x="93" y="14" fill="#79c0ff">Lightweight</text>
+    
+    <rect x="180" width="40" height="20" rx="4" fill="#21262d" stroke="#30363d"/>
+    <text x="188" y="14" fill="#56d364">MIT</text>
+  </g>
+</svg>

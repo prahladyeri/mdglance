@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="darkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe" />
+      <stop offset="50%" stop-color="#4facfe" />
+      <stop offset="100%" stop-color="#7f00ff" />
+    </linearGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="32" fill="url(#darkBg)" stroke="#1f2937" stroke-width="3" />
+  
+  <path d="M22,38 H14 V90 H22 M106,38 H114 V90 H106" fill="none" stroke="#1f2937" stroke-width="3" stroke-linecap="round" />
+
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#2a3447" stroke-width="4" />
+  
+  <path d="M34,44 V74 L49,59 L64,74 L79,59 L94,74 V44" 
+        fill="none" 
+        stroke="url(#iconGrad)" 
+        stroke-width="9" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+        
+  <path d="M64,74 V92 M52,82 L64,94 L76,82" 
+        fill="none" 
+        stroke="url(#iconGrad)" 
+        stroke-width="9" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" />
+
+  <circle cx="64" cy="50" r="9" fill="#00f2fe" />
+  <circle cx="67" cy="47" r="3" fill="#ffffff" />
+</svg>

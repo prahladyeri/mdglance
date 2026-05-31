@@ -7,6 +7,8 @@
 using Markdig;
 using System;
 using System.IO;
+using System.Drawing;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -14,11 +16,11 @@ namespace mdglance
 {
     public partial class MainForm : Form
     {
-        private string _currentRootDirectory = @"";
 
         public MainForm()
         {
             InitializeComponent();
+            SetApplicationIcon();
             webBrowser1.Navigating += WebBrowser1_Navigating;
         }
 
@@ -42,6 +44,22 @@ namespace mdglance
                     // Auto-navigate the sidebar and render the document
                     AutoBrowseToPath(incomingFilePath);
                 }
+            }
+        }
+
+        private void SetApplicationIcon()
+        {
+            try
+            {
+                // Get the absolute physical file path of the currently running .exe
+                string exePath = Assembly.GetExecutingAssembly().Location;
+
+                // Extract the primary icon asset directly out of the binary's win32 resource table
+                this.Icon = Icon.ExtractAssociatedIcon(exePath);
+            }
+            catch
+            {
+                // Fallback gracefully to default system graphics if running in a restricted sandbox
             }
         }
 
@@ -164,20 +182,6 @@ namespace mdglance
             }
         }
 
-        // Call this method when a user selects a working folder 
-        // (via a FolderBrowserDialog or dropped directory path)
-        private void InitializeDirectoryTree(string targetPath)
-        {
-            _currentRootDirectory = targetPath;
-            treeView1.Nodes.Clear();
-
-            DirectoryInfo rootDir = new DirectoryInfo(targetPath);
-            TreeNode rootNode = new TreeNode(rootDir.Name) { Tag = rootDir.FullName };
-
-            treeView1.Nodes.Add(rootNode);
-            PopulateDirectory(rootDir, rootNode.Nodes);
-            rootNode.Expand();
-        }
 
         // Populates a single level of directories and markdown files
         private void PopulateDirectory(DirectoryInfo dir, TreeNodeCollection nodeCollection)
