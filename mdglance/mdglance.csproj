@@ -90,4 +90,16 @@
     <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  
+<ItemGroup>
+    <LicenseFiles Include="licenses\**\*.*" />
+  </ItemGroup>
+
+  <Target Name="CopyLicensesToOutput" AfterTargets="Build">
+    <Copy 
+      SourceFiles="@(LicenseFiles)" 
+      DestinationFiles="@(LicenseFiles->'$(OutputPath)licenses\%(RecursiveDir)%(Filename)%(Extension)')" 
+      SkipUnchangedFiles="true" 
+    />
+  </Target>  
 </Project>

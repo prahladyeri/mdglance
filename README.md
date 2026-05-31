@@ -18,7 +18,7 @@ Just get the latest release build [from here](https://github.com/prahladyeri/mdg
 
 ## Screenshots
 
-    # TODO
+![MDGlance in Action](assets/screenshot.png)
 
 ## Build
 

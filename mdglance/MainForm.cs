@@ -24,6 +24,9 @@ namespace mdglance
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            openToolStripMenuItem.Image = imageList1.Images["folder-open"];
+            exitToolStripMenuItem.Image = imageList1.Images["exit"];
+            aboutToolStripMenuItem.Image = imageList1.Images["help-browser"];
             //Console.WriteLine(result);   // prints: <p>This is a text with some <em>emphasis</em></p>
             //InitializeDirectoryTree(Directory.GetCurrentDirectory());
             //InitializeDirectoryTree(@"D:\docs\ai_chat");
@@ -185,6 +188,8 @@ namespace mdglance
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
                     TreeNode dirNode = new TreeNode(subDir.Name) { Tag = subDir.FullName };
+                    dirNode.ImageIndex = 0;
+                    dirNode.SelectedImageIndex = 1;
                     dirNode.Nodes.Add(new TreeNode("Loading...")); // Dummy node
                     nodeCollection.Add(dirNode);
                 }
@@ -193,6 +198,8 @@ namespace mdglance
                 foreach (FileInfo file in dir.GetFiles("*.md"))
                 {
                     TreeNode fileNode = new TreeNode(file.Name) { Tag = file.FullName };
+                    fileNode.ImageIndex = 2;
+                    fileNode.SelectedImageIndex = 2;
                     nodeCollection.Add(fileNode);
                 }
             }
