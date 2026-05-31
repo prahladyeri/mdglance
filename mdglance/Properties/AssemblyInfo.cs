@@ -1,5 +1,11 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿/*
+ * @brief Assembly Info
+ * 
+ * @author Prahlad Yeri <prahladyeri@yahoo.com>
+ * @license MIT
+ */
+
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following

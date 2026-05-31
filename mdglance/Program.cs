@@ -1,7 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿/*
+ * @brief Entry Point
+ * 
+ * @author Prahlad Yeri <prahladyeri@yahoo.com>
+ * @license MIT
+ */
+using System;
 using System.Windows.Forms;
 
 namespace mdglance
