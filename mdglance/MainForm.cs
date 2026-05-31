@@ -23,7 +23,14 @@ namespace mdglance
             InitializeComponent();
             SetApplicationIcon();
             webBrowser1.IsWebBrowserContextMenuEnabled = false;
-            webBrowser1.Navigating += WebBrowser1_Navigating;
+            webBrowser1.Navigating += webBrowser1_Navigating;
+            webBrowser1.DocumentCompleted += webBrowser1_DocumentCompleted;
+            webBrowser1.NewWindow += WebBrowser1_NewWindow;
+        }
+
+        private void WebBrowser1_NewWindow(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -215,8 +222,56 @@ namespace mdglance
             }
         }
 
+        private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+            // Ensure the document object model layout is initialized and available
+            if (webBrowser1.Document != null)
+            {
+                // Bind the hover tracker loop directly to the HTML document shell infrastructure
+                webBrowser1.Document.MouseOver += HtmlDocument_MouseOver;
+                webBrowser1.Document.MouseLeave += HtmlDocument_MouseLeave;
+            }
+        }
 
-        private void WebBrowser1_Navigating(object sender, WebBrowserNavigatingEventArgs e)
+        private void HtmlDocument_MouseOver(object sender, HtmlElementEventArgs e)
+        {
+            if (webBrowser1.Document == null) return;
+
+            // Identify the specific HTML element currently sitting directly under the cursor coordinates
+            HtmlElement element = webBrowser1.Document.GetElementFromPoint(e.ClientMousePosition);
+
+            if (element != null)
+            {
+                // If the element itself isn't a link, check its parent tree line 
+                // (This catches cases where a user hovers over text styled inside <a><strong>Link</strong></a> tags)
+                while (element != null && !element.TagName.Equals("A", StringComparison.OrdinalIgnoreCase))
+                {
+                    element = element.Parent;
+                }
+
+                // If an anchor link container is successfully matched, extract the URI string target
+                if (element != null)
+                {
+                    string hrefValue = element.GetAttribute("href");
+
+                    if (!string.IsNullOrEmpty(hrefValue))
+                    {
+                        // Push the resolved path straight onto your UI Status Strip container
+                        lblStatus.Text = hrefValue;
+                        return;
+                    }
+                }
+            }
+        }
+
+        private void HtmlDocument_MouseLeave(object sender, HtmlElementEventArgs e)
+        {
+            // Instantly wipe the text label clear the moment the user's cursor exits a text target area
+            lblStatus.Text = "Ready";
+        }
+
+
+        private void webBrowser1_Navigating(object sender, WebBrowserNavigatingEventArgs e)
         {
             if (e.Url.ToString() != "about:blank")
             {
