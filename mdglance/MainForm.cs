@@ -46,6 +46,8 @@ namespace mdglance
             DialogResult res =  ofd.ShowDialog();
             //MessageBox.Show(ofd.FileName);
 
+            if (res != DialogResult.OK) return;
+
             string md = File.ReadAllText(ofd.FileName);
             // Quick pre-parser fix: finds blank lines trapped inside table rows and collapses them
             string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
