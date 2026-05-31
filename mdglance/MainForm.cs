@@ -31,6 +31,40 @@ namespace mdglance
         private void WebBrowser1_NewWindow(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
+            if (webBrowser1.Document != null)
+            {
+                // Get the specific element sitting directly beneath the mouse cursor pointer
+                HtmlElement element = webBrowser1.Document.ActiveElement;
+
+                // Trace up the DOM tree to find the parent anchor link if necessary
+                while (element != null && !element.TagName.Equals("A", StringComparison.OrdinalIgnoreCase))
+                {
+                    element = element.Parent;
+                }
+
+                // 3. Extract the target address and copy it
+                if (element != null)
+                {
+                    string targetUrl = element.GetAttribute("href");
+
+                    if (!string.IsNullOrEmpty(targetUrl))
+                    {
+                        try
+                        {
+                            // Copy to Windows clipboard
+                            Clipboard.SetText(targetUrl);
+
+                            // Update your status bar interface layout
+                            lblStatus.Text = $"Copied link target: {targetUrl}";
+                        }
+                        catch (Exception ex)
+                        {
+                            lblStatus.Text = $"Failed to copy link: {ex.Message}";
+                        }
+                    }
+                }
+            }
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
