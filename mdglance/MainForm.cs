@@ -22,6 +22,7 @@ namespace mdglance
         {
             InitializeComponent();
             SetApplicationIcon();
+            webBrowser1.IsWebBrowserContextMenuEnabled = false;
             webBrowser1.Navigating += WebBrowser1_Navigating;
         }
 
