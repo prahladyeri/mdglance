@@ -17,6 +17,8 @@ namespace mdglance
 {
     public partial class MainForm : Form
     {
+        private bool isFirstLoadComplete = false;
+        private string pendingHtmlOnBoot = string.Empty;
 
         public MainForm()
         {
@@ -79,14 +81,18 @@ namespace mdglance
 
             // 2. Check if a file path was passed via "Open With"
             string[] args = Environment.GetCommandLineArgs();
+            string filePath = "";
             if (args.Length > 1)
             {
-                string incomingFilePath = args[1];
-                if (File.Exists(incomingFilePath) && incomingFilePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Auto-navigate the sidebar and render the document
-                    AutoBrowseToPath(incomingFilePath);
-                }
+                filePath = args[1];
+            }
+            else
+            {
+                filePath = Properties.Settings.Default.LastOpenedFile;
+            }
+            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath) && filePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            {
+                AutoBrowseToPath(filePath); // Auto-navigate the sidebar and render the document
             }
         }
 
@@ -264,6 +270,19 @@ namespace mdglance
                 // Bind the hover tracker loop directly to the HTML document shell infrastructure
                 webBrowser1.Document.MouseOver += HtmlDocument_MouseOver;
                 webBrowser1.Document.MouseLeave += HtmlDocument_MouseLeave;
+
+                // If this is the absolute first initialization loop completing...
+                if (!isFirstLoadComplete)
+                {
+                    isFirstLoadComplete = true; // Lock down the state machine
+
+                    if (!string.IsNullOrEmpty(pendingHtmlOnBoot))
+                    {
+                        // Push the cached markdown string safely now that the COM layer is fully online
+                        webBrowser1.DocumentText = pendingHtmlOnBoot;
+                        pendingHtmlOnBoot = string.Empty; // Free up memory allocation
+                    }
+                }
             }
         }
 
@@ -381,6 +400,8 @@ namespace mdglance
         {
             string selectedPath = e.Node.Tag.ToString();
 
+            //treeView1.Focus();
+
             // Check if it's an actual markdown file, then read and render it
             if (File.Exists(selectedPath) && selectedPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
             {
@@ -456,17 +477,19 @@ namespace mdglance
                     {htmlContent}
                 </body>
                 </html>";
-                //webBrowser1.DocumentText = completeHtml;
-                if (webBrowser1.Document == null)
-                {
-                    //webBrowser1.Navigate("about:blank");
-                    //Application.DoEvents();
-                    webBrowser1.DocumentText = "<html><body></body></html>";
-                }
-                webBrowser1.Document.OpenNew(true);
-                webBrowser1.Document.Write(completeHtml);
-                //webBrowser1.Refresh();
                 this.Text = Application.ProductName + " - " + filePath;
+                Properties.Settings.Default.LastOpenedFile = filePath;
+                Properties.Settings.Default.Save();
+
+                // SCENARIO A: The application just booted, browser isn't ready yet
+                if (!isFirstLoadComplete)
+                {
+                    pendingHtmlOnBoot = completeHtml; // Cache the markup string safely
+                    webBrowser1.DocumentText = "<html><body></body></html>"; // Kickstart the engine
+                    return;
+                }
+                // SCENARIO B: Everyday usage. Immediate swap, zero focus loss, zero blocking loops!
+                webBrowser1.DocumentText = completeHtml;
             }
             catch (Exception ex)
             {
@@ -482,6 +505,16 @@ namespace mdglance
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             new About().ShowDialog();
+        }
+
+        private void treeView1_BeforeSelect(object sender, TreeViewCancelEventArgs e)
+        {
+            // If the WebBrowser control currently holds the Win32 input focus,
+            // forcefully yank it back to the TreeView container before the selection shifts.
+            //if (webBrowser1.Focused || !treeView1.Focused)
+            //{
+            //    treeView1.Focus();
+            //}
         }
     }
 }
