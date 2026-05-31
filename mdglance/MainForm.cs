@@ -430,7 +430,7 @@ namespace mdglance
                 }
                 webBrowser1.Document.OpenNew(true);
                 webBrowser1.Document.Write(completeHtml);
-                webBrowser1.Refresh();
+                //webBrowser1.Refresh();
                 this.Text = Application.ProductName + " - " + filePath;
             }
             catch (Exception ex)
