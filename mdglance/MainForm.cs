@@ -248,12 +248,15 @@ namespace mdglance
                 }
 
                 // 2. Fetch only Markdown files to keep the panel focused
-                foreach (FileInfo file in dir.GetFiles("*.md"))
-                {
-                    TreeNode fileNode = new TreeNode(file.Name) { Tag = file.FullName };
-                    fileNode.ImageIndex = 2;
-                    fileNode.SelectedImageIndex = 2;
-                    nodeCollection.Add(fileNode);
+                string[] allowedExtensions = { "*.md", "*.html", "*.htm" };
+                foreach (string extension in allowedExtensions) {
+                    foreach (FileInfo file in dir.GetFiles(extension))
+                    {
+                        TreeNode fileNode = new TreeNode(file.Name) { Tag = file.FullName };
+                        fileNode.ImageIndex = 2;
+                        fileNode.SelectedImageIndex = 2;
+                        nodeCollection.Add(fileNode);
+                    }
                 }
             }
             catch (UnauthorizedAccessException)
@@ -373,7 +376,7 @@ namespace mdglance
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Markdown files (*.md)|*.md";
+            ofd.Filter = "Supported Files (*.md;*.html;*.htm)|*.md;*.html;*.htm|Markdown files (*.md)|*.md|HTML files (*.html;*.htm)|*.html;*.htm";
             DialogResult res =  ofd.ShowDialog();
             if (res != DialogResult.OK) return;
             AutoBrowseToPath(ofd.FileName);
@@ -402,7 +405,10 @@ namespace mdglance
             //treeView1.Focus();
 
             // Check if it's an actual markdown file, then read and render it
-            if (File.Exists(selectedPath) && selectedPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            if (File.Exists(selectedPath) &&
+                (selectedPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ||
+                selectedPath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
+                selectedPath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase)))
             {
                 LoadAndRenderMarkdown2(selectedPath);
             }
