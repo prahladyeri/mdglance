@@ -25,7 +25,6 @@ namespace mdglance
             //this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
             this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
             this.labelCopyright.Text = AssemblyCopyright;
-            this.labelCompanyName.Text = AssemblyCompany;
             this.textBoxDescription.Text = AssemblyDescription;
 
             //logoPictureBox.Image=  
@@ -42,16 +41,21 @@ namespace mdglance
         {
 
             // 1. Mock/Pre-populated structure matching your array of dicts setup
-            var thirdPartyLibs = new List<Dictionary<string, string>>
+            var _components = new List<Dictionary<string, string>>
             {
+                new Dictionary<string, string> { { "Name", "MDGlance" }, { "License", "MIT" }, { "Path", "licenses/mdglance.txt" } },
                 new Dictionary<string, string> { { "Name", "Markdig" }, { "License", "BSD-2-Clause" }, { "Path", "licenses/markdig.txt" } },
                 new Dictionary<string, string> { { "Name", "Tango Icons" }, { "License", "Public Domain" }, { "Path", "licenses/tango-icons.txt" } },
                 new Dictionary<string, string> { { "Name", "Fugue Icons" }, { "License", "CC-BY-3.0" }, { "Path", "licenses/fugue-icons.txt" } }
             };
 
+            this.labelLicense.Text = _components[0]["License"] + " License";
+            this.labelLicense.Tag = _components[0]["Path"];
+            this.labelLicense.LinkClicked += LicenseLink_Clicked;
+
             // 2. Instantiate a FlowLayoutPanel container to host the buttons inline
             FlowLayoutPanel linkContainer = new FlowLayoutPanel
-            {
+            { 
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = true, // Gracefully wraps onto a new line if text spills over
@@ -67,8 +71,9 @@ namespace mdglance
             linkContainer.Controls.Add(lbl);
 
             // 3. Loop through your definitions to build out the LinkLabels
-            foreach (var lib in thirdPartyLibs)
+            foreach (var lib in _components)
             {
+                if (lib["Name"] == Application.ProductName) continue;
                 LinkLabel btnLink = new LinkLabel
                 {
                     Text = $"{lib["Name"]} ({lib["License"]})",
