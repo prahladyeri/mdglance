@@ -215,7 +215,7 @@ namespace mdglance
                         {
                             treeView1.SelectedNode = fileNode; // Highlight it in UI
                             fileNode.EnsureVisible();          // Auto-scroll sidebar viewport to view it
-                            LoadAndRenderMarkdown(fullPath);   // Parse and push to browser window
+                            LoadAndRenderMarkdown2(fullPath);   // Parse and push to browser window
                             break;
                         }
                     }
@@ -376,7 +376,6 @@ namespace mdglance
             ofd.Filter = "Markdown files (*.md)|*.md";
             DialogResult res =  ofd.ShowDialog();
             if (res != DialogResult.OK) return;
-            //LoadAndRenderMarkdown(ofd.FileName);
             AutoBrowseToPath(ofd.FileName);
         }
 
@@ -405,10 +404,75 @@ namespace mdglance
             // Check if it's an actual markdown file, then read and render it
             if (File.Exists(selectedPath) && selectedPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
             {
-                LoadAndRenderMarkdown(selectedPath);
+                LoadAndRenderMarkdown2(selectedPath);
             }
         }
 
+        private void LoadAndRenderMarkdown2(string filePath)
+        {
+            try
+            {
+                string bodyContent = "";
+
+                if (filePath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
+                    filePath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase))
+                {
+                    bodyContent = File.ReadAllText(filePath);
+                }
+                else
+                {
+                    string md = File.ReadAllText(filePath);
+                    string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
+
+                    var pipeline = new MarkdownPipelineBuilder()
+                        .UseAdvancedExtensions()
+                        .UseAutoIdentifiers()
+                        .Build();
+
+                    bodyContent = Markdown.ToHtml(sanitizedMd, pipeline);
+                }
+                string secureOuterShell = $@"<!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta http-equiv=""X-UA-Compatible"" content=""IE=edge"" />
+                        <meta charset=""utf-8"" />
+                        <base href=""mshtml://ToBlockScriptExecution"" />
+                        <style>
+                            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #333; padding: 20px; }}
+                            table {{ border-collapse: collapse; width: 100%; margin-bottom: 16px; }}
+                            table th, table td {{ padding: 6px 13px; border: 1px solid #dfe2e5; }}
+                            table tr:nth-child(even) {{ background-color: #f6f8fa; }}
+                            table th {{ font-weight: 600; background-color: #f6f8fa; }}
+                            code {{ background-color: rgba(27,31,35,0.05); padding: 0.2em 0.4em; border-radius: 3px; font-family: Consolas, monospace; font-size: 85%; }}
+                            pre {{ background-color: #f6f8fa; padding: 16px; border-radius: 3px; overflow: auto; }}
+                            pre code {{ background-color: transparent; padding: 0; }}
+                        </style>
+                    </head>
+                    <body>
+                        {bodyContent}
+                    </body>
+                    </html>";
+
+                this.Text = Application.ProductName + " - " + filePath;
+                Properties.Settings.Default.LastOpenedFile = filePath;
+                Properties.Settings.Default.Save();
+
+                if (!isFirstLoadComplete)
+                {
+                    pendingHtmlOnBoot = secureOuterShell;
+                    webBrowser1.DocumentText = "<html><body></body></html>";
+                    return;
+                }
+
+                webBrowser1.DocumentText = secureOuterShell;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading file: {ex.Message}");
+            }
+        }
+
+        //TODO: alternative simpler render method with scripting enabled, useful for testing
         private void LoadAndRenderMarkdown(string filePath)
         {
             try
