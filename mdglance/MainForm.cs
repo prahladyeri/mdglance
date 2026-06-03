@@ -24,7 +24,13 @@ namespace mdglance
         {
             InitializeComponent();
             SetApplicationIcon();
+
+            webBrowser1.ScriptErrorsSuppressed = true;
+            webBrowser1.ObjectForScripting = null;
+
+            webBrowser1.WebBrowserShortcutsEnabled = true;
             webBrowser1.IsWebBrowserContextMenuEnabled = false;
+
             webBrowser1.Navigating += webBrowser1_Navigating;
             webBrowser1.DocumentCompleted += webBrowser1_DocumentCompleted;
             webBrowser1.NewWindow += WebBrowser1_NewWindow;
@@ -215,7 +221,7 @@ namespace mdglance
                         {
                             treeView1.SelectedNode = fileNode; // Highlight it in UI
                             fileNode.EnsureVisible();          // Auto-scroll sidebar viewport to view it
-                            LoadAndRenderMarkdown2(fullPath);   // Parse and push to browser window
+                            LoadAndRenderMarkdown(fullPath);   // Parse and push to browser window
                             break;
                         }
                     }
@@ -402,19 +408,17 @@ namespace mdglance
         {
             string selectedPath = e.Node.Tag.ToString();
 
-            //treeView1.Focus();
-
             // Check if it's an actual markdown file, then read and render it
             if (File.Exists(selectedPath) &&
                 (selectedPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ||
                 selectedPath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
                 selectedPath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase)))
             {
-                LoadAndRenderMarkdown2(selectedPath);
+                LoadAndRenderMarkdown(selectedPath);
             }
         }
 
-        private void LoadAndRenderMarkdown2(string filePath)
+        private void LoadAndRenderMarkdown(string filePath)
         {
             try
             {
@@ -430,14 +434,20 @@ namespace mdglance
                     string md = File.ReadAllText(filePath);
                     string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
+
                     var pipeline = new MarkdownPipelineBuilder()
                         .UseAdvancedExtensions()
                         .UseAutoIdentifiers()
+                        .DisableHtml()
                         .Build();
 
                     bodyContent = Markdown.ToHtml(sanitizedMd, pipeline);
+
+                    //TODO: Alternative script disabling way to the DisableHtml() above. Handle with care:
+                    //bodyContent = Regex.Replace(bodyContent, @"<script\b[^>]*>([\s\S]*?)<\/script>", "", RegexOptions.IgnoreCase);
                 }
                 string secureOuterShell = $@"<!DOCTYPE html>
+                    <!-- saved from url=(0014)about:internet -->
                     <html>
                     <head>
                         <meta http-equiv=""X-UA-Compatible"" content=""IE=edge"" />
@@ -478,95 +488,6 @@ namespace mdglance
             }
         }
 
-        //TODO: alternative simpler render method with scripting enabled, useful for testing
-        private void LoadAndRenderMarkdown(string filePath)
-        {
-            try
-            {
-                string md = File.ReadAllText(filePath);
-                // Quick pre-parser fix: finds blank lines trapped inside table rows and collapses them
-                string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
-
-                var pipeline = new MarkdownPipelineBuilder()
-                    .UseAdvancedExtensions()
-                    .UseAutoIdentifiers()
-                    .Build();
-                var htmlContent = Markdown.ToHtml(sanitizedMd, pipeline);
-                string completeHtml = $@"
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta http-equiv=""X-UA-Compatible"" content=""IE=edge"" />
-                    <meta charset=""utf-8"" />
-                    <style>
-                        body {{
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol', Helvetica, Arial, sans-serif;
-                            font-size: 14px;
-                            line-height: 1.6;
-                            color: #333;
-                            padding: 20px;
-                        }}
-
-                        /* Clean up table layouts, borders, and alternating rows */
-                        table {{
-                            border-collapse: collapse;
-                            width: 100%;
-                            margin-bottom: 16px;
-                        }}
-                        table th, table td {{
-                            padding: 6px 13px;
-                            border: 1px solid #dfe2e5;
-                        }}
-                        table tr:nth-child(even) {{
-                            background-color: #f6f8fa;
-                        }}
-                        table th {{
-                            font-weight: 600;
-                            background-color: #f6f8fa;
-                        }}
-                        code {{
-                            background-color: rgba(27,31,35,0.05);
-                            padding: 0.2em 0.4em;
-                            border-radius: 3px;
-                            font-family: Consolas, 'Liberation Mono', Menlo, monospace;
-                            font-size: 85%;
-                        }}
-                        pre {{
-                            background-color: #f6f8fa;
-                            padding: 16px;
-                            border-radius: 3px;
-                            overflow: auto;
-                        }}
-                        pre code {{
-                            background-color: transparent;
-                            padding: 0;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    {htmlContent}
-                </body>
-                </html>";
-                this.Text = Application.ProductName + " - " + filePath;
-                Properties.Settings.Default.LastOpenedFile = filePath;
-                Properties.Settings.Default.Save();
-
-                // SCENARIO A: The application just booted, browser isn't ready yet
-                if (!isFirstLoadComplete)
-                {
-                    pendingHtmlOnBoot = completeHtml; // Cache the markup string safely
-                    webBrowser1.DocumentText = "<html><body></body></html>"; // Kickstart the engine
-                    return;
-                }
-                // SCENARIO B: Everyday usage. Immediate swap, zero focus loss, zero blocking loops!
-                webBrowser1.DocumentText = completeHtml;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error reading file: {ex.Message}");
-            }
-        }
-
         private void exitToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             this.Close();
@@ -585,6 +506,28 @@ namespace mdglance
             //{
             //    treeView1.Focus();
             //}
+        }
+
+        private void MainForm_KeyDown(object sender, KeyEventArgs e)
+        {
+
+        }
+
+        private void webBrowser1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.Control) {
+                switch (e.KeyCode) {
+                    case Keys.N: // Blocks "New Window" replication
+                    case Keys.O: // Blocks IE Open File dialog box
+                    case Keys.P: // Blocks "Print" print-spooler triggers
+                        e.IsInputKey = true; // Disallow
+                        break;  
+                    case Keys.C:
+                    case Keys.F: // IE's built-in ugly find dialog
+                    case Keys.A:
+                        break;  // Allow
+                }
+            }
         }
     }
 }
