@@ -172,7 +172,9 @@ namespace mdglance
                 string[] pathSegments = directoryPath.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
                 if (pathSegments.Length == 0) return;
 
-                // Clean up the drive segment format to match our Environment path string
+                //TODO: This works for standard Windows paths but will silently fail on UNC paths (\\server\share\file.md)
+                //or paths with trailing separators.
+                //Not critical for a local file viewer but worth hardening with Path.GetPathRoot() instead.
                 if (!pathSegments[0].EndsWith("\\"))
                 {
                     pathSegments[0] += "\\";
@@ -277,6 +279,8 @@ namespace mdglance
             if (webBrowser1.Document != null)
             {
                 // Bind the hover tracker loop directly to the HTML document shell infrastructure
+                webBrowser1.Document.MouseOver -= HtmlDocument_MouseOver;
+                webBrowser1.Document.MouseLeave -= HtmlDocument_MouseLeave;
                 webBrowser1.Document.MouseOver += HtmlDocument_MouseOver;
                 webBrowser1.Document.MouseLeave += HtmlDocument_MouseLeave;
 
@@ -336,10 +340,7 @@ namespace mdglance
         private void webBrowser1_Navigating(object sender, WebBrowserNavigatingEventArgs e)
         {
             string targetUrl = e.Url.ToString();
-            if (targetUrl.Equals("about:blank", StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
+            if (targetUrl.Equals("about:blank", StringComparison.OrdinalIgnoreCase)) return;
 
             if (targetUrl.StartsWith("about:blank#", StringComparison.OrdinalIgnoreCase))
             {
@@ -432,8 +433,9 @@ namespace mdglance
                 else
                 {
                     string md = File.ReadAllText(filePath);
-                    string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
+                    // TODO: This fixes a specific blank-line-in-table edge case but could silently corrupt other content patterns
+                    string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
                     var pipeline = new MarkdownPipelineBuilder()
                         .UseAdvancedExtensions()
@@ -446,15 +448,44 @@ namespace mdglance
                     //TODO: Alternative script disabling way to the DisableHtml() above. Handle with care:
                     //bodyContent = Regex.Replace(bodyContent, @"<script\b[^>]*>([\s\S]*?)<\/script>", "", RegexOptions.IgnoreCase);
                 }
-                string secureOuterShell = $@"<!DOCTYPE html>
-                    <!-- saved from url=(0014)about:internet -->
+
+                //Load emoji fonts
+                //string assetFolder = Path.Combine(Application.StartupPath, "assets");
+                //string cacheFolder = Path.Combine(assetFolder, "fonts");
+                //string localFontPath = Path.Combine(cacheFolder, "NotoEmoji-Regular.ttf");
+                //string localFontPath = Path.Combine(cacheFolder, "Twemoji.Mozilla.ttf");
+                //string localFontPath = Path.Combine(cacheFolder, "NotoColorEmoji-Regular.ttf");
+                //if (!File.Exists(localFontPath)) throw new Exception("Font file not found.");
+
+                //string fontUri = new Uri(localFontPath).AbsoluteUri;
+                //string imgUri = new Uri(
+                //    Path.Combine(Application.StartupPath, "assets", "RankChecker.png")).AbsoluteUri;
+
+                //byte[] fontBytes = File.ReadAllBytes(localFontPath);
+                //string fontBase64 = Convert.ToBase64String(fontBytes);
+
+
+                string secureOuterShell = $@"<!-- saved from url=(0014)about:internet -->
+                <!DOCTYPE html>
                     <html>
                     <head>
                         <meta http-equiv=""X-UA-Compatible"" content=""IE=edge"" />
                         <meta charset=""utf-8"" />
-                        <base href=""mshtml://ToBlockScriptExecution"" />
+                        <!-- base href=""mshtml://ToBlockScriptExecution""/ -->
                         <style>
-                            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #333; padding: 20px; }}
+                            body {{
+                                font-family: 'Segoe UI Emoji', 'Segoe UI', 'Segoe UI Symbol', -apple-system, sans-serif;
+                                font-size: 15px;
+                                color: #333;
+                                padding: 20px;
+                            }}
+                            h1, h2, h3, h4, h5, h6 {{
+                                font-weight: normal; 
+                            }}
+                            code, pre {{
+                                font-family: Consolas, monospace;
+                            }}
+
                             table {{ border-collapse: collapse; width: 100%; margin-bottom: 16px; }}
                             table th, table td {{ padding: 6px 13px; border: 1px solid #dfe2e5; }}
                             table tr:nth-child(even) {{ background-color: #f6f8fa; }}
@@ -477,10 +508,17 @@ namespace mdglance
                 {
                     pendingHtmlOnBoot = secureOuterShell;
                     webBrowser1.DocumentText = "<html><body></body></html>";
+                    //webBrowser1.Navigate(new Uri( Path.Combine(assetFolder, "preview.html") ).AbsoluteUri);
                     return;
                 }
 
                 webBrowser1.DocumentText = secureOuterShell;
+
+                ////// 3. SECURE LAUNCH: Run the layout file directly from disk cache
+                //string tempHtmlPath = Path.Combine(cacheFolder, "preview.html");
+                //File.WriteAllText(tempHtmlPath, secureOuterShell);
+                ////// Navigate to the file URI path instead of using DocumentText!
+                //webBrowser1.Navigate(new Uri(tempHtmlPath).AbsoluteUri);
             }
             catch (Exception ex)
             {
@@ -500,12 +538,6 @@ namespace mdglance
 
         private void treeView1_BeforeSelect(object sender, TreeViewCancelEventArgs e)
         {
-            // If the WebBrowser control currently holds the Win32 input focus,
-            // forcefully yank it back to the TreeView container before the selection shifts.
-            //if (webBrowser1.Focused || !treeView1.Focused)
-            //{
-            //    treeView1.Focus();
-            //}
         }
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
