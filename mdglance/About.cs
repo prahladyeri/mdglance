@@ -55,10 +55,11 @@ namespace mdglance
 
             // 2. Instantiate a FlowLayoutPanel container to host the buttons inline
             FlowLayoutPanel linkContainer = new FlowLayoutPanel
-            { 
+            {
                 Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.LeftToRight,
-                WrapContents = true, // Gracefully wraps onto a new line if text spills over
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                AutoScroll = true,
                 Margin = new Padding(0)
             };
 

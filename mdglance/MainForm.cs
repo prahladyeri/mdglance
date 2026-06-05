@@ -323,7 +323,7 @@ namespace mdglance
                     if (!string.IsNullOrEmpty(hrefValue))
                     {
                         // Push the resolved path straight onto your UI Status Strip container
-                        lblStatus.Text = hrefValue;
+                        lblStatus.Text = hrefValue + " (Press shift+click to copy)";
                         return;
                     }
                 }
