@@ -486,6 +486,11 @@ namespace mdglance
                                 font-family: Consolas, monospace;
                             }}
 
+                            a:link,
+                            a:visited {{color: #2563EB;
+                                text-decoration: underline;
+                            }}
+
                             table {{ border-collapse: collapse; width: 100%; margin-bottom: 16px; }}
                             table th, table td {{ padding: 6px 13px; border: 1px solid #dfe2e5; }}
                             table tr:nth-child(even) {{ background-color: #f6f8fa; }}
