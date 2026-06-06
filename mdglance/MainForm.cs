@@ -256,7 +256,7 @@ namespace mdglance
                 }
 
                 // 2. Fetch only Markdown files to keep the panel focused
-                string[] allowedExtensions = { "*.md", "*.html", "*.htm" };
+                string[] allowedExtensions = { "*.md", "*.html", "*.htm", "*.txt" };
                 foreach (string extension in allowedExtensions) {
                     foreach (FileInfo file in dir.GetFiles(extension))
                     {
@@ -410,10 +410,7 @@ namespace mdglance
             string selectedPath = e.Node.Tag.ToString();
 
             // Check if it's an actual markdown file, then read and render it
-            if (File.Exists(selectedPath) &&
-                (selectedPath.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ||
-                selectedPath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
-                selectedPath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase)))
+            if (File.Exists(selectedPath))
             {
                 LoadAndRenderMarkdown(selectedPath);
             }
@@ -425,8 +422,7 @@ namespace mdglance
             {
                 string bodyContent = "";
 
-                if (filePath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
-                    filePath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase))
+                if (!filePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
                 {
                     bodyContent = File.ReadAllText(filePath);
                 }
