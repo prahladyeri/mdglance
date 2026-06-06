@@ -12,6 +12,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace mdglance
 {
@@ -246,7 +247,8 @@ namespace mdglance
             try
             {
                 // 1. Fetch subdirectories and add a dummy node to allow expansion
-                foreach (DirectoryInfo subDir in dir.GetDirectories())
+                var sortedDirectories = dir.GetDirectories().OrderByDescending(d => d.LastWriteTime);
+                foreach (DirectoryInfo subDir in sortedDirectories)
                 {
                     TreeNode dirNode = new TreeNode(subDir.Name) { Tag = subDir.FullName };
                     dirNode.ImageIndex = 0;
@@ -257,14 +259,16 @@ namespace mdglance
 
                 // 2. Fetch only Markdown files to keep the panel focused
                 string[] allowedExtensions = { "*.md", "*.html", "*.htm", "*.txt" };
-                foreach (string extension in allowedExtensions) {
-                    foreach (FileInfo file in dir.GetFiles(extension))
-                    {
-                        TreeNode fileNode = new TreeNode(file.Name) { Tag = file.FullName };
-                        fileNode.ImageIndex = 2;
-                        fileNode.SelectedImageIndex = 2;
-                        nodeCollection.Add(fileNode);
-                    }
+                var sortedFiles = allowedExtensions
+                            .SelectMany(extension => dir.GetFiles(extension))
+                            .OrderByDescending(f => f.LastWriteTime);
+
+                foreach (FileInfo file in sortedFiles)
+                {
+                    TreeNode fileNode = new TreeNode(file.Name) { Tag = file.FullName };
+                    fileNode.ImageIndex = 2;
+                    fileNode.SelectedImageIndex = 2;
+                    nodeCollection.Add(fileNode);
                 }
             }
             catch (UnauthorizedAccessException)
