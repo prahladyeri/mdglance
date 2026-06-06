@@ -96,7 +96,7 @@ namespace mdglance
             {
                 filePath = Properties.Settings.Default.LastOpenedFile;
             }
-            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath) && filePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
             {
                 AutoBrowseToPath(filePath); // Auto-navigate the sidebar and render the document
             }
