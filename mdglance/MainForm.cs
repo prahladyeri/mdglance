@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using System.Linq;
 using Microsoft.Web.WebView2.WinForms;
 using Microsoft.Web.WebView2.Core;
+using Markdig.Extensions.AutoIdentifiers;
 
 namespace mdglance
 {
@@ -42,11 +43,11 @@ namespace mdglance
                 // Clean up the application folder by routing the UDF to %LocalAppData%
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string cacheFolder = Path.Combine(localAppData, Application.ProductName, "WebView2Profile");
-
-                // Force creation of the custom environment parameters
+                string browserArgs = "--disable-features=OverscrollHistoryNavigation --disable-features=ElasticOverscroll";
                 var environment = await CoreWebView2Environment.CreateAsync(
-                    browserExecutableFolder: null, // Defaults to system Edge Evergreen runtime
-                    userDataFolder: cacheFolder    // Redirects cache far away from your binary files
+                    browserExecutableFolder: null, 
+                    userDataFolder: cacheFolder,
+                    options: new CoreWebView2EnvironmentOptions(browserArgs)
                 );
 
                 await webView21.EnsureCoreWebView2Async(environment);
@@ -65,7 +66,7 @@ namespace mdglance
             webView21.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = true;
 
             //TODO: BUILD
-            webView21.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            webView21.CoreWebView2.Settings.AreDevToolsEnabled = true;
 
             // Lock Down Chromium Core Environment Security & Context Menus
             webView21.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
@@ -410,9 +411,10 @@ namespace mdglance
                     // TODO: This fixes a specific blank-line-in-table edge case but could silently corrupt other content patterns
                     string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
+                    var autoIdOptions = AutoIdentifierOptions.GitHub;
                     var pipeline = new MarkdownPipelineBuilder()
+                        .UseAutoIdentifiers(autoIdOptions)
                         .UseAdvancedExtensions()
-                        .UseAutoIdentifiers()
                         .DisableHtml()
                         .Build();
 
@@ -508,21 +510,19 @@ namespace mdglance
                         <style>
                             body {
                                 font-family: 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol', -apple-system, sans-serif;
-                                font-size: 15px;
-                                line-height: 1.6;
+                                font-size: 16px;
                                 color: #24292e; 
                                 padding: 24px 32px;
                                 max-width: 850px; 
                                 margin: 0 auto;
                             }
-                            pre {
-                                white-space: pre-wrap;       /* Leaves spaces/newlines intact, but wraps lines when boundaries are hit */
-                                white-space: -moz-pre-wrap;  /* Older Mozilla engine handling fallback */
-                                white-space: -pre-wrap;      /* Older Opera engine handling fallback */
-                                white-space: -o-pre-wrap;     /* Older Opera engine handling fallback */
-                                word-wrap: break-word;       /* Forces long, unbroken text strings (like logs or long variables) to break */
-                            }
 
+                            blockquote {
+                                border-left: 3px solid #d0d7de;
+                                margin: 0 0 16px 0;
+                                padding: 0 16px;
+                                color: #57606a;
+                            }
                             p, ul, ol, blockquote, table, pre {
                                 margin-top: 0;
                                 margin-bottom: 16px;
@@ -531,16 +531,14 @@ namespace mdglance
                                 color: #111827;
                                 font-weight: 600;
                                 line-height: 1.25;
-                                margin-top: 24px;
+                                margin-top: 16px;
                                 margin-bottom: 16px;
                             }
+                            h1:first-child, h2:first-child { margin-top: 0; }
                             h1 { font-size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
                             h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
                             h3 { font-size: 1.25em; }
                             h4 { font-size: 1em; }
-                            code, pre {
-                                font-family: 'Lucida Console', Consolas, monospace;
-                            }
                             a:link, a:visited {
                                 color: #0969da;
                                 text-decoration: underline;
@@ -558,10 +556,27 @@ namespace mdglance
 
                             table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
                             table th, table td { padding: 6px 13px; border: 1px solid #dfe2e5; }
-                            table tr:nth-child(even) { background-color: #f6f8fa; }
-                            table th { font-weight: 600; background-color: #f6f8fa; }
-                            code { background-color: rgba(27,31,35,0.05); padding: 0.2em 0.4em; border-radius: 3px; font-size: 85%; }
-                            pre { background-color: #f6f8fa; padding: 16px; border-radius: 3px; overflow: auto; }
+                            /*table tr:nth-child(even) { background-color: #f6f8fa; }*/
+                            /*table th { font-weight: 600; background-color: #f6f8fa; }*/
+
+
+                            pre {
+                                white-space: pre-wrap;       /* Leaves spaces/newlines intact, but wraps lines when boundaries are hit */
+                                word-wrap: break-word;       /* Forces long, unbroken text strings (like logs or long variables) to break */
+                                overflow-wrap: break-word;   /* modern spec */
+                                background-color: #f6f8fa; 
+                                padding: 16px; 
+                                border-radius: 3px;
+                            }
+                            code, pre {
+                                font-family: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+                            }
+                            code { 
+                                background-color: rgba(27,31,35,0.05); 
+                                padding: 0.2em 0.4em; 
+                                border-radius: 3px; 
+                                font-size: 85%; 
+                                }
                             pre code { background-color: transparent; padding: 0; }
 
                             /* Fixed Overlay Viewport Centering Context */
