@@ -38,8 +38,18 @@ namespace mdglance
             try
             {
                 webView21.CoreWebView2InitializationCompleted += WebView21_CoreWebView2InitializationCompleted;
-                // Initialize WebView2 Chromium Environment Asynchronously
-                await webView21.EnsureCoreWebView2Async(null);
+
+                // Clean up the application folder by routing the UDF to %LocalAppData%
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string cacheFolder = Path.Combine(localAppData, Application.ProductName, "WebView2Profile");
+
+                // Force creation of the custom environment parameters
+                var environment = await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: null, // Defaults to system Edge Evergreen runtime
+                    userDataFolder: cacheFolder    // Redirects cache far away from your binary files
+                );
+
+                await webView21.EnsureCoreWebView2Async(environment);
             }
             catch (Exception ex)
             {
@@ -54,8 +64,8 @@ namespace mdglance
             webView21.DefaultBackgroundColor = Color.FromArgb(246, 248, 250);
             webView21.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = true;
 
-            //TODO: Debugging
-            webView21.CoreWebView2.Settings.AreDevToolsEnabled = true;
+            //TODO: BUILD
+            webView21.CoreWebView2.Settings.AreDevToolsEnabled = false;
 
             // Lock Down Chromium Core Environment Security & Context Menus
             webView21.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
@@ -380,18 +390,26 @@ namespace mdglance
                 //Application.DoEvents();
                 string bodyContent = "";
 
-                if (!filePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+
+                if (filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)) 
+                {
+                    bodyContent = File.ReadAllText(filePath); 
+                        //.Replace("\r\n", "<br>")
+                        //.Replace("\n", "<br>");
+                    bodyContent = $"<pre>{bodyContent}</pre>";
+                }
+                else if (filePath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
+                    filePath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase))
                 {
                     bodyContent = File.ReadAllText(filePath);
                 }
-                else
+                else if (filePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
                 {
                     string md = File.ReadAllText(filePath);
 
                     // TODO: This fixes a specific blank-line-in-table edge case but could silently corrupt other content patterns
                     string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
-                    // TODO: Control scripting at md generation level with DisableHtml() as needed.
                     var pipeline = new MarkdownPipelineBuilder()
                         .UseAdvancedExtensions()
                         .UseAutoIdentifiers()
@@ -497,6 +515,14 @@ namespace mdglance
                                 max-width: 850px; 
                                 margin: 0 auto;
                             }
+                            pre {
+                                white-space: pre-wrap;       /* Leaves spaces/newlines intact, but wraps lines when boundaries are hit */
+                                white-space: -moz-pre-wrap;  /* Older Mozilla engine handling fallback */
+                                white-space: -pre-wrap;      /* Older Opera engine handling fallback */
+                                white-space: -o-pre-wrap;     /* Older Opera engine handling fallback */
+                                word-wrap: break-word;       /* Forces long, unbroken text strings (like logs or long variables) to break */
+                            }
+
                             p, ul, ol, blockquote, table, pre {
                                 margin-top: 0;
                                 margin-bottom: 16px;
@@ -513,7 +539,7 @@ namespace mdglance
                             h3 { font-size: 1.25em; }
                             h4 { font-size: 1em; }
                             code, pre {
-                                font-family: Consolas, monospace;
+                                font-family: 'Lucida Console', Consolas, monospace;
                             }
                             a:link, a:visited {
                                 color: #0969da;

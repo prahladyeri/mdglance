@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("MDGlance")]
 [assembly: AssemblyDescription("Fast, minimal, and dependency-free Markdown viewing on Windows")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("MDGlance Open Source Project")]
+[assembly: AssemblyCompany("MDGlance")]
 [assembly: AssemblyProduct("MDGlance")]
 [assembly: AssemblyCopyright("Copyright © Prahlad Yeri 2026")]
 [assembly: AssemblyTrademark("")]
