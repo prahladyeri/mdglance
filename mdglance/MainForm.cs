@@ -476,18 +476,32 @@ namespace mdglance
                             body {{
                                 font-family: 'Segoe UI Emoji', 'Segoe UI', 'Segoe UI Symbol', -apple-system, sans-serif;
                                 font-size: 15px;
-                                color: #333;
-                                padding: 20px;
+                                line-height: 1.6;
+                                color: #24292e; /* Soft off-black to reduce eye strain */
+                                padding: 24px 32px;
+                                max-width: 850px; /* Limits paragraph tracking length for ideal reading speed */
+                                margin: 0 auto;
                             }}
-                            h1, h2, h3, h4, h5, h6 {{
-                                font-weight: normal; 
+                            /* Paragraph & List Spacing Layouts */
+                            p, ul, ol, blockquote, table, pre {{margin - top: 0;
+                                margin-bottom: 16px;
                             }}
+                            h1, h2, h3, h4 {{color: #111827;
+                                font-weight: 600;
+                                line-height: 1.25;
+                                margin-top: 24px;
+                                margin-bottom: 16px;
+                            }}
+                            h1 {{font - size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }}
+                            h2 {{font - size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }}
+                            h3 {{font - size: 1.25em; }}
+                            h4 {{font - size: 1em; }}
                             code, pre {{
                                 font-family: Consolas, monospace;
                             }}
 
                             a:link,
-                            a:visited {{color: #2563EB;
+                            a:visited {{color: #0969da;
                                 text-decoration: underline;
                             }}
 
