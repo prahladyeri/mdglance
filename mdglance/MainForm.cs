@@ -69,8 +69,9 @@ namespace mdglance
             webView21.CoreWebView2.Settings.AreDevToolsEnabled = true;
 
             // Lock Down Chromium Core Environment Security & Context Menus
-            webView21.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             webView21.CoreWebView2.Settings.IsScriptEnabled = true;
+            webView21.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            webView21.CoreWebView2.Settings.IsStatusBarEnabled = false;
 
             // Register Native WebView2 Core Interceptors
             webView21.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
