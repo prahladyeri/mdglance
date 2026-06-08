@@ -514,7 +514,7 @@ namespace mdglance
                                 font-size: 16px;
                                 color: #24292e; 
                                 padding: 24px 32px;
-                                max-width: 850px; 
+                                /*max-width: 850px; */
                                 margin: 0 auto;
                             }
 
@@ -529,7 +529,7 @@ namespace mdglance
                                 margin-bottom: 16px;
                             }
                             h1, h2, h3, h4 {
-                                color: #111827;
+                                color: var(--text-main, #111827);
                                 font-weight: 600;
                                 line-height: 1.25;
                                 margin-top: 16px;
