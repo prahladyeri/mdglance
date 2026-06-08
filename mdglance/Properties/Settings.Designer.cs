@@ -22,17 +22,5 @@ namespace mdglance.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string LastOpenedFile {
-            get {
-                return ((string)(this["LastOpenedFile"]));
-            }
-            set {
-                this["LastOpenedFile"] = value;
-            }
-        }
     }
 }

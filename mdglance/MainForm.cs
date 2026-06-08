@@ -16,6 +16,7 @@ using System.Linq;
 using Microsoft.Web.WebView2.WinForms;
 using Microsoft.Web.WebView2.Core;
 using Markdig.Extensions.AutoIdentifiers;
+using mdglance.Helpers;
 
 namespace mdglance
 {
@@ -41,8 +42,8 @@ namespace mdglance
                 webView21.CoreWebView2InitializationCompleted += WebView21_CoreWebView2InitializationCompleted;
 
                 // Clean up the application folder by routing the UDF to %LocalAppData%
-                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string cacheFolder = Path.Combine(localAppData, Application.ProductName, "WebView2Profile");
+                //string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string cacheFolder = Path.Combine(Program.LocalAppData, "WebView2Profile");
                 string browserArgs = "--disable-features=OverscrollHistoryNavigation --disable-features=ElasticOverscroll";
                 var environment = await CoreWebView2Environment.CreateAsync(
                     browserExecutableFolder: null, 
@@ -91,7 +92,7 @@ namespace mdglance
             }
             else
             {
-                filePath = Properties.Settings.Default.LastOpenedFile;
+                filePath = Program.Settings.LastOpened;
             }
             if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
             {
@@ -626,8 +627,10 @@ namespace mdglance
                     .Replace("[BODY_CONTENT]", bodyContent)
                     .Replace("[SCRIPT_CONTENT]", scriptToInject);
 
-                Properties.Settings.Default.LastOpenedFile = filePath;
-                Properties.Settings.Default.Save();
+                //Properties.Settings.Default.LastOpenedFile = filePath;
+                //Properties.Settings.Default.Save();
+                Program.Settings.LastOpened = filePath;
+                Program.Settings.Save();
 
                 lblStatus.Text = "Loading and rendering document components...";
                 //Application.DoEvents();

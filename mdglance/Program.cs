@@ -5,7 +5,9 @@
  * @license MIT
  * @date 2026-05-31
  */
+using mdglance.Helpers;
 using System;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
@@ -15,6 +17,11 @@ namespace mdglance
     internal static class Program
     {
         private static Mutex mutex = null;
+        public static AppSettings Settings = null;
+        public static readonly string LocalAppData = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    Application.ProductName
+                );
 
         [STAThread]
         static void Main()
@@ -40,6 +47,8 @@ namespace mdglance
             };
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
+            // APP STARTS
+            Settings = AppSettings.Load();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
