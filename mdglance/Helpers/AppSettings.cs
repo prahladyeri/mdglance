@@ -15,6 +15,7 @@ namespace mdglance.Helpers
         private static string _filePath = "settings.json";
 
         public string LastOpened { get; set; } = "";
+        public int SplitterPosition { get; set; } = 310;
 
         public static AppSettings Load()
         {

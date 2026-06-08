@@ -57,6 +57,8 @@ namespace mdglance
             {
                 MessageBox.Show($"Failed to initialize Chromium rendering subsystem: {ex.Message}", "Runtime Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            //Initialize splitter
+            splitContainer1.SplitterDistance = Program.Settings.SplitterPosition;
         }
 
         private void WebView21_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
@@ -662,5 +664,15 @@ namespace mdglance
 
         }
 
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            if (!this.Visible) return;
+            Program.Settings.SplitterPosition = splitContainer1.SplitterDistance;
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Program.Settings.Save();
+        }
     }
 }
