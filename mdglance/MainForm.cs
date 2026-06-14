@@ -533,11 +533,18 @@ namespace mdglance
                             }
                             h1, h2, h3, h4 {
                                 color: var(--text-main, #111827);
-                                font-weight: 600;
                                 line-height: 1.25;
                                 margin-top: 16px;
                                 margin-bottom: 16px;
                             }
+
+                            /* Override bold rendering for Segoe UI */
+                            b, strong,
+                            h1, h2, h3, h4, h5, h6,
+                            th {
+                                font-weight: 600;
+                            }
+
                             h1:first-child, h2:first-child { margin-top: 0; }
                             h1 { font-size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
                             h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
