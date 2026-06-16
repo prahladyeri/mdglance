@@ -512,10 +512,21 @@ namespace mdglance
                     <head>
                         <meta charset=""utf-8"" />
                         <style>
-                            body {
+:root {
+    --main-font: 'Segoe UI', sans-serif;
+    --heading-font: 'Segoe UI', sans-serif;
+    --bgcolor: #f5f5f5;
+	--fgcolor: #505050;
+    --linkcolor: #1a237e;
+	--brand-font: 'arial black';
+	--brand-fgcolor: #616161; /*lightslategrey;*/
+	--visited-linkcolor: color-mix(in srgb, var(--linkcolor) 80%, var(--fgcolor)); 
+}
+                        body {
                                 font-family: 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol', -apple-system, sans-serif;
-                                font-size: 16px;
-                                color: #24292e; 
+                                font-size: 18px;
+                                color: var(--fgcolor); 
+                                background-color: var(--bgcolor);
                                 padding: 24px 32px;
                                 /*max-width: 850px; */
                                 margin: 0 auto;
@@ -525,14 +536,12 @@ namespace mdglance
                                 border-left: 3px solid #d0d7de;
                                 margin: 0 0 16px 0;
                                 padding: 0 16px;
-                                color: #57606a;
                             }
                             p, ul, ol, blockquote, table, pre {
                                 margin-top: 0;
                                 margin-bottom: 16px;
                             }
                             h1, h2, h3, h4 {
-                                color: var(--text-main, #111827);
                                 line-height: 1.25;
                                 margin-top: 16px;
                                 margin-bottom: 16px;
@@ -542,16 +551,16 @@ namespace mdglance
                             b, strong,
                             h1, h2, h3, h4, h5, h6,
                             th {
-                                font-weight: 600;
+                                font-weight: 400;
                             }
 
                             h1:first-child, h2:first-child { margin-top: 0; }
-                            h1 { font-size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
-                            h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
-                            h3 { font-size: 1.25em; }
-                            h4 { font-size: 1em; }
+                            h1 { font-size: 24px; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
+                            h2 { font-size: 24px; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
+                            h3 { font-size: 24px; }
+                            h4 { font-size: 24px; }
                             a:link, a:visited {
-                                color: #0969da;
+                                color: var(--linkcolor);
                                 text-decoration: underline;
                             }
 
@@ -567,8 +576,6 @@ namespace mdglance
 
                             table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
                             table th, table td { padding: 6px 13px; border: 1px solid #dfe2e5; }
-                            /*table tr:nth-child(even) { background-color: #f6f8fa; }*/
-                            /*table th { font-weight: 600; background-color: #f6f8fa; }*/
 
 
                             pre {
@@ -597,8 +604,8 @@ namespace mdglance
                                 left: 0;
                                 width: 100vw;
                                 height: 100vh;
-                                background-color: #ffffff; /* Blocks out unfinished DOM layouts cleanly */
-                                color: grey;
+                                background-color: var(--bgcolor); /* Blocks out unfinished DOM layouts cleanly */
+                                color: var(--fgcolor);
                                 display: flex;
                                 flex-direction: column;
                                 justify-content: center;
