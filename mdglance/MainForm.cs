@@ -17,6 +17,7 @@ using Microsoft.Web.WebView2.WinForms;
 using Microsoft.Web.WebView2.Core;
 using Markdig.Extensions.AutoIdentifiers;
 using mdglance.Helpers;
+using Newtonsoft.Json;
 
 namespace mdglance
 {
@@ -64,6 +65,17 @@ namespace mdglance
         private void WebView21_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (!e.IsSuccess) return;
+
+            string assetsPath = Path.Combine(
+                Application.StartupPath,
+                "assets"
+            );
+
+            webView21.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets",
+                assetsPath,
+                CoreWebView2HostResourceAccessKind.Allow
+            );
 
             webView21.DefaultBackgroundColor = Color.FromArgb(246, 248, 250);
             webView21.CoreWebView2.Settings.AreDefaultScriptDialogsEnabled = true;
@@ -113,8 +125,9 @@ namespace mdglance
             {
                 // Parse message string safely without heavy JSON dependencies
                 string rawMessage = e.WebMessageAsJson;
+                dynamic msg = JsonConvert.DeserializeObject(rawMessage);
 
-                if (rawMessage.Contains("\"type\":\"hover\""))
+                if (msg.type == "hover")
                 {
                     // Basic regex extraction for lightweight parsing performance
                     var match = Regex.Match(rawMessage, @"\""url\"":\""([^""]+)\""");
@@ -123,11 +136,16 @@ namespace mdglance
                         lblStatus.Text = match.Groups[1].Value + " (Shift + Click to copy target link)";
                     }
                 }
-                else if (rawMessage.Contains("\"type\":\"clear\""))
+                
+                else if (msg.type == "copy")
+                {
+                    Clipboard.SetText((string)msg.text);
+                }
+                else if (msg.type == "clear")
                 {
                     lblStatus.Text = "Ready";
                 }
-                else if (rawMessage.Contains("\"type\":\"copyShortcut\""))
+                else if (msg.type == "copyShortcut")
                 {
                     var match = Regex.Match(rawMessage, @"\""url\"":\""([^""]+)\""");
                     if (match.Success)
@@ -431,6 +449,30 @@ namespace mdglance
                     document.addEventListener('DOMContentLoaded', function() {
                         console.log('DOMContentLoaded done.');
                         document.querySelectorAll('.wait-for').forEach(el => el.classList.add('d-none'));
+                        hljs.highlightAll();
+                        document.querySelectorAll(""pre"").forEach(pre => {
+                            const btn = document.createElement(""button"");
+                            btn.innerText = ""Copy"";
+                            btn.className = ""copy-btn"";
+
+                            btn.onclick = () => {
+                                let code = pre.querySelector(""code"");
+                                chrome.webview.postMessage({
+                                    type: ""copy"",
+                                    text: code.innerText
+                                });
+
+
+                                btn.innerText = ""Copied!"";
+                                setTimeout(() => {
+                                    btn.innerText = ""Copy"";
+                                }, 1500);
+                            };
+
+                            pre.style.position = ""relative"";
+
+                            pre.appendChild(btn);
+                        });
                     });
 
                     document.addEventListener('mouseover', function(e) {
@@ -511,19 +553,26 @@ namespace mdglance
                     <html>
                     <head>
                         <meta charset=""utf-8"" />
+                        <link rel=""stylesheet"" href=""https://appassets/github.min.css"">
+                        <script src=""https://appassets/highlight.min.js""></script>
+
                         <style>
-:root {
-    --main-font: 'Segoe UI', sans-serif;
-    --heading-font: 'Segoe UI', sans-serif;
-    --bgcolor: #f5f5f5;
-	--fgcolor: #505050;
-    --linkcolor: #1a237e;
-	--brand-font: 'arial black';
-	--brand-fgcolor: #616161; /*lightslategrey;*/
-	--visited-linkcolor: color-mix(in srgb, var(--linkcolor) 80%, var(--fgcolor)); 
-}
+                        :root {
+                            --main-font: Constantia, 'Sitka Text', 'Bahnschrift', 'Segoe UI', sans-serif; /* 'Segoe UI Emoji' */
+                            --heading-font: 'Segoe UI', sans-serif;
+                            --bgcolor: #f5f5f5;
+	                        --fgcolor: #505050;
+                            --linkcolor: #1a237e;
+                        }
+                        .copy-btn {
+                            position: absolute;
+                            font-family: 'cascadia code';
+                            top: 8px;
+                            right: 8px;
+                            cursor: pointer;
+                        }
                         body {
-                                font-family: 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol', -apple-system, sans-serif;
+                                font-family: var(--main-font);
                                 font-size: 18px;
                                 color: var(--fgcolor); 
                                 background-color: var(--bgcolor);
@@ -551,7 +600,7 @@ namespace mdglance
                             b, strong,
                             h1, h2, h3, h4, h5, h6,
                             th {
-                                font-weight: 400;
+                                /* font-weight: 400; */
                             }
 
                             h1:first-child, h2:first-child { margin-top: 0; }
@@ -587,7 +636,7 @@ namespace mdglance
                                 border-radius: 3px;
                             }
                             code, pre {
-                                font-family: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+                                font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
                             }
                             code { 
                                 background-color: rgba(27,31,35,0.05); 
