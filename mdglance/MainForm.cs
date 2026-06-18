@@ -452,7 +452,7 @@ namespace mdglance
                         hljs.highlightAll();
                         document.querySelectorAll(""pre"").forEach(pre => {
                             const btn = document.createElement(""button"");
-                            btn.innerText = ""Copy"";
+                            btn.innerText = ""📋"";
                             btn.className = ""copy-btn"";
 
                             btn.onclick = () => {
@@ -465,7 +465,7 @@ namespace mdglance
 
                                 btn.innerText = ""Copied!"";
                                 setTimeout(() => {
-                                    btn.innerText = ""Copy"";
+                                    btn.innerText = ""📋"";
                                 }, 1500);
                             };
 
@@ -570,6 +570,20 @@ namespace mdglance
                             top: 8px;
                             right: 8px;
                             cursor: pointer;
+                            background: rgba(255,255,255,0.8);
+                            border: 1px solid #d0d7de;
+                            border-radius: 6px;
+                            padding: 4px 6px;
+                            font-size: 14px;
+                            line-height: 1;
+                            /* opacity: 0; hide until hover 
+                            transition: opacity 0.2s;*/
+                        }
+                        pre:hover.copy-btn {
+                            opacity: 1; /* only show on hover - less visual noise */
+                        }
+                        .copy-btn:hover {
+                            background: #f3f4f6;
                         }
                         body {
                                 font-family: var(--main-font);
@@ -632,8 +646,9 @@ namespace mdglance
                                 word-wrap: break-word;       /* Forces long, unbroken text strings (like logs or long variables) to break */
                                 overflow-wrap: break-word;   /* modern spec */
                                 background-color: #f6f8fa; 
-                                padding: 16px; 
+                                padding: 3px; 
                                 border-radius: 3px;
+                                border: 0.5px solid #9E9E9E;
                             }
                             code, pre {
                                 font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
@@ -644,7 +659,10 @@ namespace mdglance
                                 border-radius: 3px; 
                                 font-size: 85%; 
                                 }
-                            pre code { background-color: transparent; padding: 0; }
+                            pre code { 
+                                background-color: transparent; 
+                                padding: 2px !important; 
+                            }
 
                             /* Fixed Overlay Viewport Centering Context */
                             .loader-container {
