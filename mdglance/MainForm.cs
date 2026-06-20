@@ -481,12 +481,11 @@ namespace mdglance
                             element = element.parentElement;
                         }
                         if (element) {
-                            let hrefAttr = element.getAttribute('href') || '';
-                            if (hrefAttr.startsWith('#')) {
-                                window.chrome.webview.postMessage({ type: 'hover', url: window.location.hash || hrefAttr });
-                            } else if (element.href) {
-                                window.chrome.webview.postMessage({ type: 'hover', url: element.href });
+                            let url = element.href || element.getAttribute('href') || '';
+                            if (url.startsWith('about:blank')) {
+                                url = url.replace('about:blank', '');
                             }
+                            window.chrome.webview.postMessage({ type: 'hover', url: url });
                         }
                     });
 
