@@ -557,8 +557,8 @@ namespace mdglance
 
                         <style>
                         :root {
-                            --main-font: Constantia, 'Sitka Text', 'Bahnschrift', 'Segoe UI', sans-serif; /* 'Segoe UI Emoji' */
-                            --heading-font: 'Segoe UI', sans-serif;
+                            --main-font: 'Sitka Text', 'Bahnschrift', 'Segoe UI', sans-serif;
+                            --heading-font: Bahnschrift, 'Sitka Text', 'Segoe UI', sans-serif;
                             --bgcolor: #f5f5f5;
 	                        --fgcolor: #505050;
                             --linkcolor: #1a237e;
