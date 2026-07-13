@@ -18,6 +18,7 @@ using Microsoft.Web.WebView2.Core;
 using Markdig.Extensions.AutoIdentifiers;
 using mdglance.Helpers;
 using Newtonsoft.Json;
+using System.Text;
 
 namespace mdglance
 {
@@ -194,7 +195,11 @@ namespace mdglance
             }
 
             // Cancel any external link navigation attempts to keep application context sandboxed
-            e.Cancel = true;
+            //e.Cancel = true;
+            Uri uri = new Uri(e.Uri);
+            if (! uri.IsFile) {
+                return;
+            }
         }
 
         private void SetApplicationIcon()
@@ -716,7 +721,11 @@ namespace mdglance
 
                 lblStatus.Text = "Loading and rendering document components...";
                 //Application.DoEvents();
-                webView21.CoreWebView2.NavigateToString(finalHtml);
+
+                //webView21.CoreWebView2.NavigateToString(finalHtml);
+                var tempFile = Path.Combine(Path.GetTempPath(), "mdglance.html");
+                File.WriteAllText(tempFile, finalHtml, Encoding.UTF8);
+                webView21.CoreWebView2.Navigate(new Uri(tempFile).AbsoluteUri);
             }
             catch (Exception ex)
             {
