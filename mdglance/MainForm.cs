@@ -725,7 +725,7 @@ namespace mdglance
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error reading file: {ex.Message}");
+                MessageBox.Show($"Error reading file: {ex.Message}",Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
