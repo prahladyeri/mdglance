@@ -414,37 +414,34 @@ namespace mdglance
             {
                 this.Text = Application.ProductName + " - " + filePath;
                 lblStatus.Text = "Processing Markdown...";
-                //webView21.CoreWebView2.NavigateToString(LoaderHtml);
-                //Application.DoEvents();
                 string bodyContent = "";
 
-
-                if (filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)) 
+                switch (Path.GetExtension(filePath).ToLowerInvariant()) 
                 {
-                    bodyContent = File.ReadAllText(filePath);
-                    bodyContent = System.Net.WebUtility.HtmlEncode(bodyContent);
-                    bodyContent = $"<pre>{bodyContent}</pre>";
-                }
-                else if (filePath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
-                    filePath.EndsWith(".htm", StringComparison.OrdinalIgnoreCase))
-                {
-                    bodyContent = File.ReadAllText(filePath);
-                }
-                else if (filePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
-                {
-                    string md = File.ReadAllText(filePath);
+                    case ".txt":
+                        bodyContent = File.ReadAllText(filePath);
+                        bodyContent = System.Net.WebUtility.HtmlEncode(bodyContent);
+                        bodyContent = $"<pre>{bodyContent}</pre>";
+                        break;
+                    case ".html":
+                    case ".htm":
+                        bodyContent = File.ReadAllText(filePath);
+                        break;
+                    case ".md":
+                        string md = File.ReadAllText(filePath);
 
-                    // TODO: This fixes a specific blank-line-in-table edge case but could silently corrupt other content patterns
-                    string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
+                        // TODO: This fixes a specific blank-line-in-table edge case but could silently corrupt other content patterns
+                        string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
-                    var autoIdOptions = AutoIdentifierOptions.GitHub;
-                    var pipeline = new MarkdownPipelineBuilder()
-                        .UseAutoIdentifiers(autoIdOptions)
-                        .UseAdvancedExtensions()
-                        .DisableHtml()
-                        .Build();
+                        var autoIdOptions = AutoIdentifierOptions.GitHub;
+                        var pipeline = new MarkdownPipelineBuilder()
+                            .UseAutoIdentifiers(autoIdOptions)
+                            .UseAdvancedExtensions()
+                            .DisableHtml()
+                            .Build();
 
-                    bodyContent = Markdown.ToHtml(sanitizedMd, pipeline);
+                        bodyContent = Markdown.ToHtml(sanitizedMd, pipeline);
+                        break;
                 }
 
                 var scriptToInject = @"
