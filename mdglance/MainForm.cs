@@ -185,21 +185,19 @@ namespace mdglance
 
         private void CoreWebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
-            string targetUrl = e.Uri;
-
-            // Allow initial bootstrapping or explicit in-memory string injections
+            string targetUrl = e.Uri; // Allow initial bootstrapping or explicit in-memory string injections
             if (targetUrl.Equals("about:blank", StringComparison.OrdinalIgnoreCase) ||
                 targetUrl.StartsWith("data:text/html", StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
-            // Cancel any external link navigation attempts to keep application context sandboxed
-            //e.Cancel = true;
             Uri uri = new Uri(e.Uri);
-            if (! uri.IsFile) {
+            if (uri.IsFile) { // Allow file navigations
                 return;
             }
+
+            e.Cancel = true; // Cancel any external link navigation attempts to keep application context sandboxed
         }
 
         private void SetApplicationIcon()
