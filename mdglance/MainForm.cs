@@ -739,16 +739,6 @@ namespace mdglance
             new About().ShowDialog();
         }
 
-        private void treeView1_BeforeSelect(object sender, TreeViewCancelEventArgs e)
-        {
-
-        }
-
-        private void MainForm_KeyDown(object sender, KeyEventArgs e)
-        {
-
-        }
-
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
         {
             if (!this.Visible) return;
