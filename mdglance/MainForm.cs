@@ -421,9 +421,8 @@ namespace mdglance
 
                 if (filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)) 
                 {
-                    bodyContent = File.ReadAllText(filePath); 
-                        //.Replace("\r\n", "<br>")
-                        //.Replace("\n", "<br>");
+                    bodyContent = File.ReadAllText(filePath);
+                    bodyContent = System.Net.WebUtility.HtmlEncode(bodyContent);
                     bodyContent = $"<pre>{bodyContent}</pre>";
                 }
                 else if (filePath.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
