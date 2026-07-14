@@ -16,7 +16,6 @@ using System.Linq;
 using Microsoft.Web.WebView2.WinForms;
 using Microsoft.Web.WebView2.Core;
 using Markdig.Extensions.AutoIdentifiers;
-using mdglance.Helpers;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -130,12 +129,12 @@ namespace mdglance
 
                 if (msg.type == "hover")
                 {
-                    // Basic regex extraction for lightweight parsing performance
-                    var match = Regex.Match(rawMessage, @"\""url\"":\""([^""]+)\""");
-                    if (match.Success)
-                    {
-                        lblStatus.Text = match.Groups[1].Value + " (Shift + Click to copy target link)";
-                    }
+                    //var match = Regex.Match(rawMessage, @"\""url\"":\""([^""]+)\""");
+                    //if (match.Success)
+                    //{
+                    //lblStatus.Text = match.Groups[1].Value + " (Shift + Click to copy target link)";
+                    //}
+                    lblStatus.Text = msg.url + " (Shift + Click to copy target link)";
                 }
                 
                 else if (msg.type == "copy")
@@ -148,13 +147,16 @@ namespace mdglance
                 }
                 else if (msg.type == "copyShortcut")
                 {
-                    var match = Regex.Match(rawMessage, @"\""url\"":\""([^""]+)\""");
-                    if (match.Success)
-                    {
-                        string targetUrl = match.Groups[1].Value;
-                        Clipboard.SetText(targetUrl);
-                        lblStatus.Text = $"Copied link target: {targetUrl}";
-                    }
+                    //var match = Regex.Match(rawMessage, @"\""url\"":\""([^""]+)\""");
+                    //if (match.Success)
+                    //{
+                    //    string targetUrl = match.Groups[1].Value;
+                    //    Clipboard.SetText(targetUrl);
+                    //    lblStatus.Text = $"Copied link target: {targetUrl}";
+                    //}
+                    string targetUrl = msg.url;
+                    Clipboard.SetText(targetUrl);
+                    lblStatus.Text = $"Copied link target: {targetUrl}";
                 }
             }
             catch
