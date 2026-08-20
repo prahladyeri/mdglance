@@ -420,6 +420,9 @@ FodyWeavers.xsd
 # Local History for Visual Studio Code
 .history/
 
+# Claude Code local settings
+.claude/
+
 # Built Visual Studio Code Extensions
 *.vsix
 

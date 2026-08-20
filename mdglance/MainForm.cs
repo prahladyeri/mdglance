@@ -18,6 +18,8 @@ using Microsoft.Web.WebView2.Core;
 using Markdig.Extensions.AutoIdentifiers;
 using Newtonsoft.Json;
 using System.Text;
+using System.Threading.Tasks;
+using mdglance.Helpers;
 
 namespace mdglance
 {
@@ -25,6 +27,16 @@ namespace mdglance
     {
         private WebView2 webView21;
         private bool _isAutoNavigating = false;
+
+        // Holds the currently opened LLM backup. Null means regular filesystem browsing.
+        private ChatBackup _backup = null;
+
+        // Shared by the file renderer and the chat renderer so both produce identical markup
+        private static readonly MarkdownPipeline _pipeline = new MarkdownPipelineBuilder()
+            .UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
+            .UseAdvancedExtensions()
+            .DisableHtml()
+            .Build();
 
         public MainForm()
         {
@@ -35,6 +47,7 @@ namespace mdglance
         private async void MainForm_Load(object sender, EventArgs e)
         {
             openToolStripMenuItem.Image = imageList1.Images["folder-open"];
+            openBackupToolStripMenuItem.Image = imageList1.Images["document"];
             exitToolStripMenuItem.Image = imageList1.Images["exit"];
             aboutToolStripMenuItem.Image = imageList1.Images["help-browser"];
             InitializeSystemDrives();
@@ -97,17 +110,24 @@ namespace mdglance
             //webView21.CoreWebView2.NavigateToString(LoaderHtml);
             //Application.DoEvents();
 
-            // Init the default file
+            // Init the default file. A backup handed over on the command line, or the one left
+            // open last time, takes precedence over the last opened document.
             string[] args = Environment.GetCommandLineArgs();
-            string filePath = "";
-            if (args.Length > 1)
+            string cmdLinePath = args.Length > 1 ? args[1] : "";
+
+            if (IsBackupFile(cmdLinePath))
             {
-                filePath = args[1];
+                RestoreBackup(cmdLinePath);
+                return;
             }
-            else
+
+            if (string.IsNullOrEmpty(cmdLinePath) && IsBackupFile(Program.Settings.LastBackup))
             {
-                filePath = Program.Settings.LastOpened;
+                RestoreBackup(Program.Settings.LastBackup);
+                return;
             }
+
+            string filePath = string.IsNullOrEmpty(cmdLinePath) ? Program.Settings.LastOpened : cmdLinePath;
             if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
             {
                 AutoBrowseToPath(filePath); // Auto-navigate the sidebar and render the document
@@ -377,7 +397,156 @@ namespace mdglance
             ofd.Filter = "Supported Files (*.md;*.html;*.htm)|*.md;*.html;*.htm|Markdown files (*.md)|*.md|HTML files (*.html;*.htm)|*.html;*.htm";
             DialogResult res =  ofd.ShowDialog();
             if (res != DialogResult.OK) return;
+
+            // Opening a document leaves backup mode, the sidebar can only show one of the two
+            if (_backup != null) CloseBackup();
+
             AutoBrowseToPath(ofd.FileName);
+        }
+
+        private async void openBackupToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "Open LLM Backup";
+            ofd.Filter = "LLM chat backup (*.json)|*.json|All files (*.*)|*.*";
+            DialogResult res = ofd.ShowDialog();
+            if (res != DialogResult.OK) return;
+            await LoadBackup(ofd.FileName);
+        }
+
+        private void closeBackupToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CloseBackup();
+        }
+
+        private static bool IsBackupFile(string path)
+        {
+            return !string.IsNullOrEmpty(path)
+                && string.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase)
+                && File.Exists(path);
+        }
+
+        // Reopens the backup remembered from the last session, falling back to plain file
+        // browsing rather than stranding the user in an empty sidebar
+        private async void RestoreBackup(string path)
+        {
+            if (await LoadBackup(path)) return;
+
+            Program.Settings.LastBackup = "";
+            Program.Settings.Save();
+            InitializeSystemDrives();
+        }
+
+        private async Task<bool> LoadBackup(string path)
+        {
+            string fileName = Path.GetFileName(path);
+            try
+            {
+                this.UseWaitCursor = true;
+                lblStatus.Text = $"Reading {fileName}...";
+
+                // Real exports run into hundreds of megabytes, keep the parse off the UI thread
+                ChatBackup backup = await Task.Run(() => ChatBackup.Load(path));
+
+                _backup = backup;
+                PopulateBackupTree();
+                closeBackupToolStripMenuItem.Enabled = true;
+
+                Program.Settings.LastBackup = path;
+                Program.Settings.Save();
+
+                this.Text = Application.ProductName + " - " + fileName;
+                lblStatus.Text = $"{fileName} - {_backup.Conversations.Count} chats";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not read backup: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = "Ready";
+                return false;
+            }
+            finally
+            {
+                this.UseWaitCursor = false;
+            }
+        }
+
+        private void CloseBackup()
+        {
+            _backup = null;
+            closeBackupToolStripMenuItem.Enabled = false;
+
+            Program.Settings.LastBackup = "";
+            Program.Settings.Save();
+
+            InitializeSystemDrives();
+            this.Text = Application.ProductName;
+            lblStatus.Text = "Ready";
+        }
+
+        // Replaces the drive listing with the chats in the loaded backup, bucketed by date
+        // the way the LLM web interfaces present their own sidebars
+        private void PopulateBackupTree()
+        {
+            try
+            {
+                treeView1.BeginUpdate();
+                treeView1.Nodes.Clear();
+
+                var groups = _backup.Conversations
+                    .GroupBy(c => DateGroupOf(c.UpdatedAt))
+                    .OrderByDescending(g => g.Max(c => c.UpdatedAt));
+
+                foreach (var group in groups)
+                {
+                    TreeNode groupNode = new TreeNode($"{group.Key} ({group.Count()})");
+                    groupNode.ImageIndex = 0;
+                    groupNode.SelectedImageIndex = 1;
+
+                    foreach (ChatConversation conversation in group)
+                    {
+                        TreeNode chatNode = new TreeNode(conversation.Title) { Tag = conversation };
+                        chatNode.ImageIndex = 2;
+                        chatNode.SelectedImageIndex = 2;
+                        groupNode.Nodes.Add(chatNode);
+                    }
+
+                    treeView1.Nodes.Add(groupNode);
+                }
+
+                // Only the most recent bucket starts open, backups can hold thousands of chats
+                if (treeView1.Nodes.Count > 0) treeView1.Nodes[0].Expand();
+            }
+            finally
+            {
+                treeView1.EndUpdate();
+            }
+        }
+
+        private static string DateGroupOf(DateTime date)
+        {
+            if (date == DateTime.MinValue) return "Undated";
+
+            DateTime today = DateTime.Today;
+            if (date.Date == today) return "Today";
+            if (date.Date == today.AddDays(-1)) return "Yesterday";
+            if (date.Date > today.AddDays(-7)) return "Previous 7 Days";
+            if (date.Date > today.AddDays(-30)) return "Previous 30 Days";
+            return date.ToString("MMMM yyyy");
+        }
+
+        private void RenderConversation(ChatConversation conversation)
+        {
+            try
+            {
+                lblStatus.Text = "Processing chat...";
+                string bodyContent = Markdown.ToHtml(conversation.ToMarkdown(), _pipeline);
+                RenderHtmlBody(bodyContent, conversation.Title);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error rendering chat: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Event handler: Fires when a user clicks the "+" expansion box on a folder node
@@ -386,10 +555,11 @@ namespace mdglance
             TreeNode expandingNode = e.Node;
 
             // If the folder has our dummy node inside, clear it and lazy-load real paths
-            if (expandingNode.Nodes.Count == 1 && expandingNode.Nodes[0].Text == "Loading...")
+            // (backup date groups carry no path and are fully populated already, so they skip this)
+            string fullPath = expandingNode.Tag as string;
+            if (fullPath != null && expandingNode.Nodes.Count == 1 && expandingNode.Nodes[0].Text == "Loading...")
             {
                 expandingNode.Nodes.Clear();
-                string fullPath = expandingNode.Tag.ToString();
                 PopulateDirectory(new DirectoryInfo(fullPath), expandingNode.Nodes);
             }
 
@@ -400,9 +570,18 @@ namespace mdglance
         {
             if (_isAutoNavigating) return;
 
-            string selectedPath = e.Node.Tag.ToString();
+            // In backup mode the node carries the chat itself rather than a path on disk
+            ChatConversation conversation = e.Node.Tag as ChatConversation;
+            if (conversation != null)
+            {
+                RenderConversation(conversation);
+                return;
+            }
 
-            if (File.Exists(selectedPath))
+            // Date groups and the "Loading..." stub have no tag at all
+            string selectedPath = e.Node.Tag as string;
+
+            if (!string.IsNullOrEmpty(selectedPath) && File.Exists(selectedPath))
             {
                 LoadAndRenderMarkdown(selectedPath);
             }
@@ -412,7 +591,6 @@ namespace mdglance
         {
             try
             {
-                this.Text = Application.ProductName + " - " + filePath;
                 lblStatus.Text = "Processing Markdown...";
                 string bodyContent = "";
 
@@ -433,18 +611,30 @@ namespace mdglance
                         // TODO: This fixes a specific blank-line-in-table edge case but could silently corrupt other content patterns
                         string sanitizedMd = Regex.Replace(md, @"(\|\s*\r?\n)\s*\r?\n(\s*\|)", "$1$2");
 
-                        var autoIdOptions = AutoIdentifierOptions.GitHub;
-                        var pipeline = new MarkdownPipelineBuilder()
-                            .UseAutoIdentifiers(autoIdOptions)
-                            .UseAdvancedExtensions()
-                            .DisableHtml()
-                            .Build();
-
-                        bodyContent = Markdown.ToHtml(sanitizedMd, pipeline);
+                        bodyContent = Markdown.ToHtml(sanitizedMd, _pipeline);
                         break;
                 }
 
-                var scriptToInject = @"
+                //Properties.Settings.Default.LastOpenedFile = filePath;
+                //Properties.Settings.Default.Save();
+                Program.Settings.LastOpened = filePath;
+                Program.Settings.Save();
+
+                RenderHtmlBody(bodyContent, filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading file: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Wraps a ready-made HTML fragment in the viewer shell, whether it came from a file on
+        // disk or from a chat inside an LLM backup
+        private void RenderHtmlBody(string bodyContent, string title)
+        {
+            this.Text = Application.ProductName + " - " + title;
+
+            var scriptToInject = @"
                     console.log('Current state:', document.readyState);
 
                     document.addEventListener('DOMContentLoaded', function() {
@@ -549,7 +739,7 @@ namespace mdglance
                 ";
 
 
-                string secureOuterShell = @"<!DOCTYPE html>
+            string secureOuterShell = @"<!DOCTYPE html>
                     <html>
                     <head>
                         <meta charset=""utf-8"" />
@@ -706,27 +896,17 @@ namespace mdglance
                     </body>
                     </html>";
 
-                string finalHtml = secureOuterShell
-                    .Replace("[BODY_CONTENT]", bodyContent)
-                    .Replace("[SCRIPT_CONTENT]", scriptToInject);
+            string finalHtml = secureOuterShell
+                .Replace("[BODY_CONTENT]", bodyContent)
+                .Replace("[SCRIPT_CONTENT]", scriptToInject);
 
-                //Properties.Settings.Default.LastOpenedFile = filePath;
-                //Properties.Settings.Default.Save();
-                Program.Settings.LastOpened = filePath;
-                Program.Settings.Save();
+            lblStatus.Text = "Loading and rendering document components...";
+            //Application.DoEvents();
 
-                lblStatus.Text = "Loading and rendering document components...";
-                //Application.DoEvents();
-
-                //webView21.CoreWebView2.NavigateToString(finalHtml);
-                var tempFile = Path.Combine(Path.GetTempPath(), "mdglance.html");
-                File.WriteAllText(tempFile, finalHtml, Encoding.UTF8);
-                webView21.CoreWebView2.Navigate(new Uri(tempFile).AbsoluteUri);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error reading file: {ex.Message}",Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            //webView21.CoreWebView2.NavigateToString(finalHtml);
+            var tempFile = Path.Combine(Path.GetTempPath(), "mdglance.html");
+            File.WriteAllText(tempFile, finalHtml, Encoding.UTF8);
+            webView21.CoreWebView2.Navigate(new Uri(tempFile).AbsoluteUri);
         }
 
         private void exitToolStripMenuItem1_Click(object sender, EventArgs e)

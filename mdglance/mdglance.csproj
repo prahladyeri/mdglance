@@ -77,6 +77,7 @@
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\AppSettings.cs" />
+    <Compile Include="Helpers\ChatBackup.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

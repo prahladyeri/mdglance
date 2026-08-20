@@ -19,6 +19,23 @@ Just get the latest release build [from here](https://github.com/prahladyeri/mdg
 
 ![MDGlance in Action](assets/screenshot.png)
 
+## Browse an LLM backup
+
+Rather than exporting each chat to its own markdown file, you can point MDGlance straight at the JSON backup your LLM
+hands out.
+
+1. In ChatGPT, go to *Settings → Data controls → Export data*. The mail you get back contains a `conversations.json`.
+2. In MDGlance, pick *File → Open LLM Backup...* and select that file.
+
+The sidebar swaps out the drive listing for the chats in the backup, bucketed by date the way the ChatGPT sidebar itself
+groups them. Selecting a chat renders the whole thread in the reading pane, code highlighting and all. Only the branch
+you actually left the conversation on is shown, so edited prompts and regenerated answers don't show up twice.
+
+*File → Close Backup* puts the drive listing back. The backup you had open is remembered, so MDGlance reopens it next
+time you start it.
+
+Only the ChatGPT export format is understood for now.
+
 ## Build
 
 Any Visual Studio Edition including Professional, Community, Express, etc. released in the last decade can be used to build the solution.

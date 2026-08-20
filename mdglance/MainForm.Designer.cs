@@ -33,6 +33,8 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openBackupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeBackupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,6 +70,8 @@
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openToolStripMenuItem,
+            this.openBackupToolStripMenuItem,
+            this.closeBackupToolStripMenuItem,
             this.toolStripMenuItem1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
@@ -77,19 +81,34 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
-            // 
+            //
+            // openBackupToolStripMenuItem
+            //
+            this.openBackupToolStripMenuItem.Name = "openBackupToolStripMenuItem";
+            this.openBackupToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openBackupToolStripMenuItem.Text = "Open LLM Backup...";
+            this.openBackupToolStripMenuItem.Click += new System.EventHandler(this.openBackupToolStripMenuItem_Click);
+            //
+            // closeBackupToolStripMenuItem
+            //
+            this.closeBackupToolStripMenuItem.Enabled = false;
+            this.closeBackupToolStripMenuItem.Name = "closeBackupToolStripMenuItem";
+            this.closeBackupToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.closeBackupToolStripMenuItem.Text = "Close Backup";
+            this.closeBackupToolStripMenuItem.Click += new System.EventHandler(this.closeBackupToolStripMenuItem_Click);
+            //
             // toolStripMenuItem1
-            // 
+            //
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(100, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(177, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -219,6 +238,8 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openBackupToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeBackupToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
