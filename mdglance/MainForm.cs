@@ -677,7 +677,7 @@ namespace mdglance
                                 border: 0.5px solid #9E9E9E;
                             }
                             code, pre {
-                                font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
+                                font-family: Consolas, 'Courier New', monospace;
                             }
                             code { 
                                 background-color: rgba(27,31,35,0.05); 
