@@ -110,7 +110,7 @@ namespace mdglance
             }
             if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
             {
-                AutoBrowseToPath(filePath); // Auto-navigate the sidebar and render the document
+                AutoBrowseToPath(filePath, restoreScroll: true); // Auto-navigate the sidebar and render the document
             }
         }
 
@@ -157,6 +157,10 @@ namespace mdglance
                     string targetUrl = msg.url;
                     Clipboard.SetText(targetUrl);
                     lblStatus.Text = $"Copied link target: {targetUrl}";
+                }
+                else if (msg.type == "scroll")
+                {
+                    Program.Settings.LastScrollY = (double)msg.y;
                 }
             }
             catch
@@ -246,7 +250,7 @@ namespace mdglance
             }
         }
 
-        private void AutoBrowseToPath(string fullPath)
+        private void AutoBrowseToPath(string fullPath, bool restoreScroll = false)
         {
             try
             {
@@ -309,7 +313,7 @@ namespace mdglance
                             
                             _isAutoNavigating = false;
 
-                            LoadAndRenderMarkdown(fullPath);
+                            LoadAndRenderMarkdown(fullPath, restoreScroll);
                             break;
                         }
                     }
@@ -408,7 +412,7 @@ namespace mdglance
             }
         }
 
-        private void LoadAndRenderMarkdown(string filePath)
+        private void LoadAndRenderMarkdown(string filePath, bool restoreScroll = false)
         {
             try
             {
@@ -444,13 +448,31 @@ namespace mdglance
                         break;
                 }
 
+                double scrollY = restoreScroll ? Program.Settings.LastScrollY : 0;
+
                 var scriptToInject = @"
                     console.log('Current state:', document.readyState);
+
+                    // Track scroll position continuously and report it back for persistence
+                    let __scrollSaveTimer;
+                    window.addEventListener('scroll', function() {
+                        clearTimeout(__scrollSaveTimer);
+                        __scrollSaveTimer = setTimeout(function() {
+                            window.chrome.webview.postMessage({ type: 'scroll', y: window.scrollY });
+                        }, 200);
+                    });
 
                     document.addEventListener('DOMContentLoaded', function() {
                         console.log('DOMContentLoaded done.');
                         document.querySelectorAll('.wait-for').forEach(el => el.classList.add('d-none'));
                         hljs.highlightAll();
+
+                        // Restore scroll position (only meaningful on the initial auto-loaded file)
+                        setTimeout(function() {
+                            window.scrollTo(0, [SCROLL_Y]);
+                        }, 50);
+
+
                         document.querySelectorAll(""pre"").forEach(pre => {
                             const btn = document.createElement(""button"");
                             btn.innerText = ""📋"";
@@ -548,6 +570,10 @@ namespace mdglance
                     });
                 ";
 
+                scriptToInject = scriptToInject.Replace(
+                    "[SCROLL_Y]",
+                    scrollY.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                );
 
                 string secureOuterShell = @"<!DOCTYPE html>
                     <html>
